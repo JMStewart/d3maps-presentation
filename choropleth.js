@@ -148,7 +148,6 @@ var getData = new Promise(function(resolve, reject) {
 });
 
 function draw(data, scale, isNormalized) {
-  console.log('did something!');
   if (svg) {
     svg.remove();  
   }

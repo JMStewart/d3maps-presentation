@@ -24,7 +24,7 @@ d3.json('us2.json', function(err, states) {
     .attr("d", path)
     .style({
       fill: 'none',
-      stroke: '#e3e3e3'
+      stroke: '#777777'
     });
   d3.csv('data.csv', function(err, data) {
     data.map(function(d) {

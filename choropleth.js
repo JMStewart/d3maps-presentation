@@ -150,9 +150,9 @@ var getData = new Promise(function(resolve, reject) {
 function draw(data, scale, isNormalized) {
   console.log('did something!');
   if (svg) {
-    svg.remove();  
+    svg.remove();
   }
-  
+
   svg = d3.select('body')
   .append('svg')
   .style({
@@ -180,7 +180,7 @@ function draw(data, scale, isNormalized) {
           return '#ffffff';
         }
       },
-      stroke: '#e3e3e3'
+      stroke: '#777777'
     });
 };
 
@@ -202,11 +202,12 @@ Promise.all([getStates, getData])
     mappedData = {};
     groupedData.map(d => mappedData[stateFips[d.key]] = d.values);
     colorScale.domain([0, d3.max(groupedData, d => d.values.length)]);
-    
+
     normalizedData = {};
     fipsPops.map(d => normalizedData[d[0]] = mappedData[d[0]].length / d[1]);
     normalizedMax = 0;
-    fipsPops.map(d => normalizedMax = (mappedData[d[0]].length / d[1] > normalizedMax ? mappedData[d[0]].length / d[1] : normalizedMax ) );
+    normalizedMax = d3.max(fipsPops, d => mappedData[d[0]].length / d[1]);
+    // fipsPops.map(d => normalizedMax = (mappedData[d[0]].length / d[1] > normalizedMax ? mappedData[d[0]].length / d[1] : normalizedMax ) );
     colorScaleNormalized.domain([0, normalizedMax]);
 
     draw(mappedData, colorScale, normalized);

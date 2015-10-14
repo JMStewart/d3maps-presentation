@@ -147,67 +147,70 @@ var getData = new Promise(function(resolve, reject) {
   });
 });
 
-function draw(data, scale, isNormalized) {
-  if (svg) {
-    svg.remove();
-  }
-
-  svg = d3.select('body')
-  .append('svg')
-  .style({
-    width: width + 'px',
-    height: height + 'px'
-  });
-
-  svg.selectAll('path.state')
-    .data(topojson.feature(states, states.objects.states).features, function (d) {
-      return d.properties.state;
-    })
-    .enter()
-    .append("path")
-    .attr("class", "state")
-    .attr("d", path)
-    .style({
-      fill: d => {
-        if (data[d.id]){
-          if (isNormalized) {
-            return scale(data[d.id]);
-          } else {
-            return scale(data[d.id].length);
-          }
-        } else {
-          return '#ffffff';
-        }
-      },
-      stroke: '#777777'
-    });
-};
-
-d3.select('button').on('click', function() {
-  normalized = !normalized;
-  var dataset = normalized ? normalizedData : mappedData;
-  var scale = normalized ? colorScaleNormalized : colorScale;
-  draw(dataset, scale, normalized);
-});
-
 Promise.all([getStates, getData])
   .then(function(datasets) {
-    normalized = false;
-    states = datasets[0];
-    data = datasets[1];
-    groupedData = d3.nest()
+    var normalized = false;
+    var states = datasets[0];
+    var data = datasets[1];
+    var groupedData = d3.nest()
       .key(d => d.State)
       .entries(data);
-    mappedData = {};
+
+    var mappedData = {};
     groupedData.map(d => mappedData[stateFips[d.key]] = d.values);
     colorScale.domain([0, d3.max(groupedData, d => d.values.length)]);
 
-    normalizedData = {};
+    var normalizedData = {};
     fipsPops.map(d => normalizedData[d[0]] = mappedData[d[0]].length / d[1]);
-    normalizedMax = 0;
-    normalizedMax = d3.max(fipsPops, d => mappedData[d[0]].length / d[1]);
-    // fipsPops.map(d => normalizedMax = (mappedData[d[0]].length / d[1] > normalizedMax ? mappedData[d[0]].length / d[1] : normalizedMax ) );
-    colorScaleNormalized.domain([0, normalizedMax]);
+    colorScaleNormalized.domain([0, d3.max(fipsPops, d => mappedData[d[0]].length / d[1])]);
+
+    function draw(data, scale, isNormalized) {
+      if (svg) {
+        svg.remove();
+      }
+
+      svg = d3.select('body')
+      .append('svg')
+      .style({
+        width: width + 'px',
+        height: height + 'px'
+      });
+
+      svg.selectAll('path.state')
+        .data(topojson.feature(states, states.objects.states).features, function (d) {
+          return d.properties.state;
+        })
+        .enter()
+        .append("path")
+        .attr("class", "state")
+        .attr("d", path)
+        .style({
+          fill: d => {
+            if (data[d.id]){
+              if (isNormalized) {
+                return scale(data[d.id]);
+              } else {
+                return scale(data[d.id].length);
+              }
+            } else {
+              return '#ffffff';
+            }
+          },
+          stroke: '#777777'
+        });
+    };
 
     draw(mappedData, colorScale, normalized);
+
+    d3.select('button')
+      .on('click', function() {
+        normalized = !normalized;
+        var dataset = normalized ? normalizedData : mappedData;
+        var scale = normalized ? colorScaleNormalized : colorScale;
+        
+        d3.select(this)
+          .text(normalized ? 'Show Raw Data' : 'Show Per Capita');
+
+        draw(dataset, scale, normalized);
+      });
   });

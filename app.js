@@ -33,7 +33,7 @@ d3.json('us2.json', function(err, states) {
     data = data.filter(function(d){
       return d.point;
     });
-    svg.selectAll('circle.ufo')
+    svg.selectAll('circle')
       .data(data)
       .enter()
       .append('circle')
